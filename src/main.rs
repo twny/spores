@@ -1,4 +1,3 @@
-use std::fs;
 use std::process;
 use std::collections::HashMap;
 use std::{
@@ -7,6 +6,9 @@ use std::{
 };
 
 type Handler = fn(&str) -> String;
+
+const body_404: &str = include_str!("404.html");
+const body_index: &str = include_str!("index.html");
 
 fn get_foo(_: &str) -> String {
     let status = "HTTP/1.1 404 Not Found \r\n";
@@ -18,14 +20,14 @@ fn get_foo(_: &str) -> String {
 
 fn not_found(_: &str) -> String {
     let status = "HTTP/1.1 404 Not Found \r\n";
-    let body = fs::read_to_string("src/404.html").unwrap_or("".to_string());
+    let body = body_404.to_string();
     let size = format!("Content-Length: {}\r\n", body.len());
     let response = format!("{status}{size}\r\n{body}");
     return response;
 }
 
 fn get_index(_: &str) -> String {
-    let body = fs::read_to_string("src/index.html").unwrap_or("".to_string());
+    let body = body_index.to_string();
     let status = "HTTP/1.1 200 OK \r\n";
     let size = format!("Content-Length: {}\r\n", body.len());
     let response = format!("{status}{size}\r\n{body}");
