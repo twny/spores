@@ -61,8 +61,7 @@ fn handle_connection(mut stream: TcpStream) {
     routes.insert("GET / HTTP/1.1".to_string(), get_index);
     routes.insert("GET /foo HTTP/1.1".to_string(), get_foo);
 
-    let empty_body = String::new();
-    let path = req.get(0).unwrap_or(&empty_body);
+    let path = req.get(0).unwrap_or_default();
 
     let response = match routes.get(path) {
         Some(handler) => handler(path),
