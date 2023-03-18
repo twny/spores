@@ -1,5 +1,8 @@
 use std::process;
 use std::collections::HashMap;
+use std::thread;
+use std::fs;
+use std::time::Duration;
 use std::{
     io::{prelude::*, BufReader},
     net::{TcpListener, TcpStream},
@@ -10,30 +13,27 @@ type Handler = fn(&str) -> String;
 const body_404: &str = include_str!("404.html");
 const body_index: &str = include_str!("index.html");
 
-fn get_foo(_: &str) -> String {
-    let status = "HTTP/1.1 404 Not Found \r\n";
-    let body = "<html><h1>Foo</h1></html>";
-    let size = format!("Content-Length: {}\r\n", body.len());
-    let response = format!("{status}{size}\r\n{body}");
-    return response;
+fn not_found(_: &str) -> String {
+    let body = fs::read_to_string("src/404.html").unwrap_or("".to_string());
+    return response(&body, &"404 Not Found".to_string());
 }
 
-fn not_found(_: &str) -> String {
-    let status = "HTTP/1.1 404 Not Found \r\n";
-    let body = body_404.to_string();
-    let size = format!("Content-Length: {}\r\n", body.len());
-    let response = format!("{status}{size}\r\n{body}");
-    return response;
+fn get_sleep(_: &str) -> String {
+    let body = "<html><h1>Sleeeeepy</h1></html>";
+    thread::sleep(Duration::from_secs(10));
+    return response(&body, &"200 Ok".to_string());
 }
 
 fn get_index(_: &str) -> String {
-    let body = body_index.to_string();
-    let status = "HTTP/1.1 200 OK \r\n";
-    let size = format!("Content-Length: {}\r\n", body.len());
-    let response = format!("{status}{size}\r\n{body}");
-    return response;
+    let body = fs::read_to_string("src/index.html").unwrap_or("".to_string());
+    return response(&body, &"200 Ok".to_string());
 }
 
+fn response(body: &str, status: &str) -> String {
+    let status = format!("HTTP/1.1 {status} \r\n");
+    let size = format!("Content-Length: {}\r\n", body.len());
+    return format!("{status}{size}\r\n{body}");
+}
 
 fn main() {
     let listener = TcpListener::bind("127.0.0.1:7878").unwrap_or_else(|err| {
@@ -43,7 +43,10 @@ fn main() {
 
     for stream in listener.incoming() {
         let stream = stream.unwrap();
-        handle_connection(stream);
+
+        thread::spawn(|| {
+            handle_connection(stream);
+        });
 
         println!("Connection established!");
     }
@@ -61,7 +64,7 @@ fn handle_connection(mut stream: TcpStream) {
     // TODO how to memoize this hashmap for the whole run time?
     let mut routes: HashMap<String, Handler> = HashMap::new();
     routes.insert("GET / HTTP/1.1".to_string(), get_index);
-    routes.insert("GET /foo HTTP/1.1".to_string(), get_foo);
+    routes.insert("GET /sleep HTTP/1.1".to_string(), get_sleep);
 
     let path = req.get(0).unwrap_or_default();
 
