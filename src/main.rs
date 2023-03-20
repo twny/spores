@@ -1,5 +1,5 @@
-use std::process;
 use std::collections::HashMap;
+use std::process;
 use std::thread;
 use std::time::Duration;
 use std::{
@@ -13,25 +13,25 @@ const BODY_404: &str = include_str!("404.html");
 const BODY_INDEX: &str = include_str!("index.html");
 
 fn not_found(_: &str) -> String {
-    let body = BODY_404.to_string();
-    return response(&body, &"404 Not Found".to_string());
+    let body = BODY_404;
+    response(body, "404 Not Found")
 }
 
 fn get_sleep(_: &str) -> String {
     let body = "<html><h1>Sleeeeepy</h1></html>";
     thread::sleep(Duration::from_secs(10));
-    return response(&body, &"200 Ok".to_string());
+    response(body, "200 Ok")
 }
 
 fn get_index(_: &str) -> String {
-    let body = BODY_INDEX.to_string();
-    return response(&body, &"200 Ok".to_string());
+    let body = BODY_INDEX;
+    response(body, "200 Ok")
 }
 
 fn response(body: &str, status: &str) -> String {
     let status = format!("HTTP/1.1 {status} \r\n");
     let size = format!("Content-Length: {}\r\n", body.len());
-    return format!("{status}{size}\r\n{body}");
+    format!("{status}{size}\r\n{body}")
 }
 
 fn main() {
@@ -60,7 +60,6 @@ fn handle_connection(mut stream: TcpStream) {
         .take_while(|line| !line.is_empty())
         .collect();
 
-
     // TODO how to memoize this hashmap for the whole run time?
     let mut routes: HashMap<String, Handler> = HashMap::new();
     routes.insert("GET / HTTP/1.1".to_string(), get_index);
@@ -77,7 +76,6 @@ fn handle_connection(mut stream: TcpStream) {
         Ok(r) => r,
         Err(err) => {
             println!("{err}");
-            return;
         }
     };
 }
