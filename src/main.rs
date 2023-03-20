@@ -72,16 +72,10 @@ fn handle_connection(mut stream: TcpStream, routes: Arc<HashMap<&str, Handler>>)
         .take_while(|line| !line.is_empty())
         .collect();
 
-    match req[0].contains("POST") {
-        true => {
-            println!("POST request");
-            let mut contents_raw: Vec<u8> = vec![];
-            reader.read_until(b'}', &mut contents_raw).unwrap();
-            req.push(String::from_utf8(contents_raw).unwrap());
-        }
-        false => {
-            println!("GET request");
-        }
+    if req[0].contains("POST") {
+        let mut contents_raw: Vec<u8> = vec![];
+        reader.read_until(b'}', &mut contents_raw).unwrap();
+        req.push(String::from_utf8(contents_raw).unwrap());
     };
 
     let parsed_request = parse_request(&req);
