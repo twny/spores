@@ -42,29 +42,28 @@ fn main() {
         process::exit(1);
     });
 
-    let routes: Arc<Mutex<HashMap<&str, Handler>>> = Arc::new(Mutex::new(HashMap::new()));
+    let mut routes: HashMap<&str, Handler> = HashMap::new();
+    routes.insert("/", get_index);
+    routes.insert("/sleep", get_sleep);
 
-    // Arc clone let's us create a new reference to the same data, instead of cloning the data itself
-    let routes_clone = Arc::clone(&routes);
-    let mut routes_lock = routes_clone.lock().unwrap();
-
-    routes_lock.insert("/", get_index);
-    routes_lock.insert("/sleep", get_sleep);
+    let routes = Arc::new(routes);
 
     for stream in listener.incoming() {
+        /* Arc clone let's us create a new reference to the same data
+        instead of cloning the data itself */
         let routes = Arc::clone(&routes);
         let stream = stream.unwrap();
 
         // TODO make this a thead pool
         thread::spawn(move || {
-            handle_connection(stream, routes.lock().unwrap());
+            handle_connection(stream, routes);
         });
 
         println!("Connection established!");
     }
 }
 
-fn handle_connection(mut stream: TcpStream, routes: MutexGuard<HashMap<&str, Handler>>) {
+fn handle_connection(mut stream: TcpStream, routes: Arc<HashMap<&str, Handler>>) {
     let mut reader = BufReader::new(&stream);
     let mut req: Vec<String> = reader
         .by_ref()
