@@ -1,11 +1,11 @@
-use std::collections::HashMap;
-use std::process;
-use std::sync::Arc;
-use std::thread;
-use std::time::Duration;
 use std::{
+    collections::HashMap,
     io::{prelude::*, BufReader},
     net::{TcpListener, TcpStream},
+    process,
+    sync::Arc,
+    thread,
+    time::Duration,
 };
 
 // TODO: should pass Method or ParsedRequest instead of &str, and change the name of the function so it's not get_, since it's not just for GET requests
