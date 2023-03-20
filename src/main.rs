@@ -1,7 +1,6 @@
 use std::process;
 use std::collections::HashMap;
 use std::thread;
-use std::fs;
 use std::time::Duration;
 use std::{
     io::{prelude::*, BufReader},
@@ -10,11 +9,11 @@ use std::{
 
 type Handler = fn(&str) -> String;
 
-const body_404: &str = include_str!("404.html");
-const body_index: &str = include_str!("index.html");
+const BODY_404: &str = include_str!("404.html");
+const BODY_INDEX: &str = include_str!("index.html");
 
 fn not_found(_: &str) -> String {
-    let body = fs::read_to_string("src/404.html").unwrap_or("".to_string());
+    let body = BODY_404.to_string();
     return response(&body, &"404 Not Found".to_string());
 }
 
@@ -25,7 +24,7 @@ fn get_sleep(_: &str) -> String {
 }
 
 fn get_index(_: &str) -> String {
-    let body = fs::read_to_string("src/index.html").unwrap_or("".to_string());
+    let body = BODY_INDEX.to_string();
     return response(&body, &"200 Ok".to_string());
 }
 
@@ -44,6 +43,7 @@ fn main() {
     for stream in listener.incoming() {
         let stream = stream.unwrap();
 
+        // TODO make this a thead pool
         thread::spawn(|| {
             handle_connection(stream);
         });
@@ -66,11 +66,11 @@ fn handle_connection(mut stream: TcpStream) {
     routes.insert("GET / HTTP/1.1".to_string(), get_index);
     routes.insert("GET /sleep HTTP/1.1".to_string(), get_sleep);
 
-    let path = req.get(0).unwrap_or_default();
+    let path = req.get(0).cloned().unwrap_or_default();
 
-    let response = match routes.get(path) {
-        Some(handler) => handler(path),
-        None => not_found(path),
+    let response = match routes.get(&path) {
+        Some(handler) => handler(&path),
+        None => not_found(&path),
     };
 
     match stream.write_all(response.as_bytes()) {
