@@ -65,11 +65,12 @@ fn handle_connection(mut stream: TcpStream) {
     routes.insert("GET / HTTP/1.1".to_string(), get_index);
     routes.insert("GET /sleep HTTP/1.1".to_string(), get_sleep);
 
-    let path = req.get(0).cloned().unwrap_or_default();
+    let default = "GET / HTTP/1.1".to_string();
+    let path = req.get(0).unwrap_or(&default);
 
-    let response = match routes.get(&path) {
-        Some(handler) => handler(&path),
-        None => not_found(&path),
+    let response = match routes.get(path) {
+        Some(handler) => handler(path),
+        None => not_found(path),
     };
 
     match stream.write_all(response.as_bytes()) {
