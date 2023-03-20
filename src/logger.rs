@@ -13,8 +13,9 @@ use std::{
 // TODO: find a way to do this without lazy_static or any other external crate
 lazy_static::lazy_static! {
     static ref INSTANCE: Arc<Mutex<Option<Logger>>> = Arc::new(Mutex::new(None));
-    static ref FILENAME: Arc<Mutex<String>> = Arc::new(Mutex::new("debug.log".to_string()));
 }
+
+const FILENAME: &str = "debug.log";
 
 #[allow(dead_code)]
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
@@ -110,7 +111,7 @@ fn get_file_and_filename() -> (Arc<Mutex<File>>, String) {
     let filename: String;
     let file: Arc<Mutex<File>>;
     if !cfg!(test) {
-        filename = FILENAME.lock().unwrap().clone();
+        filename = FILENAME.to_string();
         file = Arc::new(Mutex::new(
             OpenOptions::new()
                 .create(true)
@@ -434,20 +435,20 @@ mod tests {
         let rt = Runtime::new().unwrap();
         rt.block_on(spawn_logs());
 
-        let filename = FILENAME.lock().unwrap().clone();
+        let filename = FILENAME;
         let mut file = match OpenOptions::new().read(true).open(filename) {
             Ok(file) => file,
             Err(e) => {
                 // if it was a file not found error then create the file and try again
                 if e.kind() == std::io::ErrorKind::NotFound {
-                    let filename = FILENAME.lock().unwrap().clone();
+                    let filename = FILENAME;
                     let mut file = OpenOptions::new()
                         .write(true)
                         .create(true)
                         .open(filename)
                         .unwrap();
                     file.write_all(b"").unwrap();
-                    let filename = FILENAME.lock().unwrap().clone();
+                    let filename = FILENAME;
                     let file = OpenOptions::new().read(true).open(filename).unwrap();
                     file
                 } else {

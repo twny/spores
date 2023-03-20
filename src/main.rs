@@ -1,11 +1,14 @@
-use std::process;
 use std::collections::HashMap;
+use std::process;
 use std::thread;
 use std::time::Duration;
 use std::{
     io::{prelude::*, BufReader},
     net::{TcpListener, TcpStream},
 };
+
+mod logger;
+use logger::{LogInfo, LogLevel, Logger};
 
 type Handler = fn(&str) -> String;
 
@@ -49,6 +52,7 @@ fn main() {
         });
 
         println!("Connection established!");
+        log_debug!("Connection established!");
     }
 }
 
@@ -59,7 +63,6 @@ fn handle_connection(mut stream: TcpStream) {
         .map(|result| result.unwrap())
         .take_while(|line| !line.is_empty())
         .collect();
-
 
     // TODO how to memoize this hashmap for the whole run time?
     let mut routes: HashMap<String, Handler> = HashMap::new();
