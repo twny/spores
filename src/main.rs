@@ -55,7 +55,7 @@ fn main() {
         let stream = stream.unwrap();
 
         // TODO make this a thead pool
-        thread::spawn(move || {
+        thread::spawn(|| {
             handle_connection(stream, routes);
         });
 
