@@ -120,19 +120,18 @@ fn parse_request(request: &[String]) -> ParsedRequest {
     let query = route_parts.next().unwrap_or("");
     let mut headers = HashMap::new();
 
-    for (index, header) in request.iter().enumerate() {
-        if index > 0 {
-            if !header.contains(':') || header.starts_with('{') {
-                continue;
-            }
-            let mut split = header.split(':');
-            headers.insert(
-                // key
-                split.next().unwrap().trim().to_string(),
-                // value
-                split.collect::<Vec<&str>>().join(":").trim().to_string(),
-            );
+    for (_, header) in request.iter().enumerate() {
+        println!("{header}");
+        if !header.contains(':') || header.starts_with('{') {
+            continue;
         }
+        let mut split = header.split(':');
+        headers.insert(
+            // key
+            split.next().unwrap().trim().to_string(),
+            // value
+            split.collect::<Vec<&str>>().join(":").trim().to_string(),
+        );
     }
 
     let method = match method {
