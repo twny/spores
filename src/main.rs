@@ -1,8 +1,3 @@
-use std::collections::HashMap;
-use std::process;
-use std::thread;
-use std::time::Duration;
-
 use std::{
     collections::HashMap,
     io::{prelude::*, BufReader},
@@ -13,9 +8,7 @@ use std::{
     time::Duration,
 };
 
-mod logger;
-use logger::{LogInfo, LogLevel, Logger};
-
+// TODO: should pass Method or ParsedRequest instead of &str, and change the name of the function so it's not get_, since it's not just for GET requests
 type Handler = fn(&str) -> String;
 
 const BODY_404: &str = include_str!("404.html");
@@ -67,7 +60,6 @@ fn main() {
         });
 
         println!("Connection established!");
-        log_debug!("Connection established!");
     }
 }
 
@@ -80,13 +72,14 @@ fn handle_connection(mut stream: TcpStream, routes: Arc<HashMap<&str, Handler>>)
         .take_while(|line| !line.is_empty())
         .collect();
 
-    // TODO how to memoize this hashmap for the whole run time?
-    let mut routes: HashMap<String, Handler> = HashMap::new();
-    routes.insert("GET / HTTP/1.1".to_string(), get_index);
-    routes.insert("GET /sleep HTTP/1.1".to_string(), get_sleep);
+    if req[0].contains("POST") {
+        let mut contents_raw: Vec<u8> = vec![];
+        reader.read_until(b'}', &mut contents_raw).unwrap();
+        req.push(String::from_utf8(contents_raw).unwrap());
+    };
 
-    let path = req.get(0).cloned().unwrap_or_default();
-
+    let parsed_request = parse_request(&req);
+    let path = parsed_request.route.as_str();
 
     let response = match routes.get(path) {
         Some(handler) => handler(path),
