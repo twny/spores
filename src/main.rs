@@ -1,3 +1,5 @@
+mod log;
+
 use std::{
     collections::HashMap,
     io::{prelude::*, BufReader},
@@ -37,6 +39,8 @@ fn response(body: &str, status: &str) -> String {
 }
 
 fn main() {
+    log::info!("Hello Cruel World!");
+
     let listener = TcpListener::bind("127.0.0.1:7878").unwrap_or_else(|err| {
         println!("{err}");
         process::exit(1);
