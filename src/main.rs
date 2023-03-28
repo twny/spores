@@ -8,6 +8,9 @@ use std::{
     time::Duration,
 };
 
+mod logger;
+use logger::{LogInfo, LogLevel, Logger};
+
 // TODO: should pass Method or ParsedRequest instead of &str, and change the name of the function so it's not get_, since it's not just for GET requests
 type Handler = fn(&str) -> String;
 
