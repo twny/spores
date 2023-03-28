@@ -7,8 +7,3 @@ lldb = "0.0.11"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-lazy_static = "1.4.0"
-
-[dev-dependencies]
-tokio = { version = "1.26.0", features = ["full", "rt"] }
-serial_test = "1.0.0"
