@@ -1,3 +1,4 @@
+use spores::ThreadPool;
 use std::{
     collections::HashMap,
     io::{prelude::*, BufReader},
@@ -8,14 +9,15 @@ use std::{
     time::Duration,
 };
 
-mod logger;
-use logger::{LogInfo, LogLevel, Logger};
+// mod logger;
+// use logger::{LogInfo, LogLevel, Logger};
 
 // TODO: should pass Method or ParsedRequest instead of &str, and change the name of the function so it's not get_, since it's not just for GET requests
 type Handler = fn(&str) -> String;
 
 const BODY_404: &str = include_str!("404.html");
 const BODY_INDEX: &str = include_str!("index.html");
+const CAROUSEL: &str = include_str!("carousel.html");
 
 fn not_found(_: &str) -> String {
     let body = BODY_404;
@@ -26,6 +28,11 @@ fn get_sleep(_: &str) -> String {
     let body = "<html><h1>Sleeeeepy</h1></html>";
     thread::sleep(Duration::from_secs(10));
     response(body, "200 Ok")
+}
+
+fn get_carousel(_: &str) -> String {
+    let body = CAROUSEL;
+    response(body, "200  Ok")   
 }
 
 fn get_index(_: &str) -> String {
@@ -48,6 +55,7 @@ fn main() {
     let mut routes: HashMap<&str, Handler> = HashMap::new();
     routes.insert("/", get_index);
     routes.insert("/sleep", get_sleep);
+    routes.insert("/carousel", get_carousel);
 
     let routes = Arc::new(routes);
 
@@ -57,8 +65,10 @@ fn main() {
         let routes = Arc::clone(&routes);
         let stream = stream.unwrap();
 
+        let pool = ThreadPool::new(4);
+
         // TODO make this a thead pool
-        thread::spawn(|| {
+        pool.execute(|| {
             handle_connection(stream, routes);
         });
 
