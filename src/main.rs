@@ -32,7 +32,7 @@ fn get_sleep(_: &str) -> String {
 
 fn get_carousel(_: &str) -> String {
     let body = CAROUSEL;
-    response(body, "200  Ok")   
+    response(body, "200  Ok")
 }
 
 fn get_index(_: &str) -> String {

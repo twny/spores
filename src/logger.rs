@@ -6,14 +6,11 @@ use std::{
     fs::{File, OpenOptions},
     hash::{Hash, Hasher},
     io::Write,
-    sync::{Arc, Mutex},
+    sync::{Arc, Mutex, OnceLock},
     time::SystemTime,
 };
 
-// TODO: find a way to do this without lazy_static or any other external crate
-lazy_static::lazy_static! {
-    static ref INSTANCE: Arc<Mutex<Option<Logger>>> = Arc::new(Mutex::new(None));
-}
+static INSTANCE: OnceLock<Arc<Mutex<Option<Logger>>>> = OnceLock::new();
 
 const FILENAME: &str = "debug.log";
 
@@ -206,7 +203,8 @@ impl Logger {
 
     pub fn get_instance() -> Logger {
         // Check if the instance is already created.
-        let current_global_instance = INSTANCE.clone();
+        let current_global_instance =
+            Arc::clone(INSTANCE.get_or_init(|| Arc::new(Mutex::new(None))));
         let mut current_global_instance_lock = current_global_instance.lock().unwrap();
         if current_global_instance_lock.is_none() {
             // If the instance is not created, create it.
